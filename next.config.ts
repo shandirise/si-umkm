@@ -4,26 +4,30 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
-  // === NEW: Webpack configuration for Node.js modules ===
   webpack: (config, { isServer }) => {
-    // Konfigurasi ini hanya berlaku untuk build sisi server (API Routes)
     if (isServer) {
-      config.externals = config.externals || [];
-      // Tambahkan modul inti Node.js yang digunakan oleh formidable dan fs.promises
-      // untuk memastikan Webpack tidak mencoba membundelnya.
-      config.externals.push(
-        'fs',
-        'fs/promises', // Penting untuk 'fs/promises'
-        'path',
-        'crypto',
-        'events',
-        // Anda bisa menambahkan modul Node.js inti lainnya di sini jika diperlukan
-        // Contoh: 'stream', 'buffer', 'util', 'os', 'http', 'https', 'url', etc.
-      );
+      // Ensure that Node.js built-in modules are always externalized
+      // This custom external function will match modules like 'fs', 'fs/promises', 'path', 'crypto', 'events'
+      // and also their 'node:' prefixed versions (e.g., 'node:fs', 'node:crypto')
+      config.externals = [
+        ...config.externals, // Keep any existing externals
+        ({ request }, callback) => {
+          // List of Node.js built-in modules commonly used in API routes
+          const nodeBuiltIns = ['fs', 'fs/promises', 'path', 'crypto', 'events', 'stream', 'buffer', 'util', 'os', 'http', 'https', 'url'];
+          
+          if (
+            nodeBuiltIns.some(mod => request === mod || request === `node:${mod}`)
+          ) {
+            // Treat these modules as external CommonJS modules
+            return callback(null, `commonjs ${request}`);
+          }
+          // Continue with default externalization for other modules
+          callback();
+        },
+      ];
     }
     return config;
   },
-  // ====================================================
 };
 
 export default nextConfig;
