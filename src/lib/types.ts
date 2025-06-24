@@ -1,7 +1,10 @@
+// src/lib/types.ts
 export type User = {
   id: string; // Akan diisi dengan UID dari Firebase
   role: 'pembeli' | 'umkm' | 'admin';
   shopId: string | null;
+  email?: string; // Tambahkan ini
+  name?: string;  // Tambahkan ini
 };
 
 export type Product = {
@@ -43,4 +46,26 @@ export type Order = {
   totalPrice: number;
   status: 'diproses' | 'dikirim' | 'selesai' | 'dibatalkan';
   createdAt: string;
+};
+
+// NEW TYPE: Training Event
+export type Training = {
+  id: string;
+  name: string;
+  description: string;
+  date: string; // Format YYYY-MM-DD
+  location: string;
+  capacity: number;
+  registeredCount: number;
+  imageUrl?: string;
+};
+
+// NEW TYPE: Training Registration
+export type TrainingRegistration = {
+  id: string;
+  trainingId: string;
+  userId: string;
+  userName: string; // Untuk memudahkan tampilan di admin
+  userEmail: string; // Untuk memudahkan tampilan di admin
+  registrationDate: string; // ISO string
 };

@@ -40,6 +40,11 @@ export default function Home() {
               )}
             </Link>
 
+            {/* NEW LINK: Pelatihan */}
+            <Link href="/pelatihan" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:underline">
+              Pelatihan UMKM
+            </Link>
+
             {user ? (
               <>
                 <div className="flex items-center gap-2 text-sm">

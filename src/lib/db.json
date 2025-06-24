@@ -1,9 +1,11 @@
 {
   "users": [
     {
-      "id": "USER_UID_DARI_FIREBASE",
+      "id": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
       "role": "pembeli",
-      "shopId": null
+      "shopId": null,
+      "email": "contohuser@example.com",
+      "name": "Contoh Pengguna"
     }
   ],
   "shops": [
@@ -254,6 +256,46 @@
       "totalPrice": 75500,
       "status": "selesai",
       "createdAt": "2025-06-24T16:27:41.956Z"
+    }
+  ],
+  "trainings": [
+    {
+      "id": "training-1750786505313",
+      "name": "canva",
+      "description": "tes",
+      "date": "2025-07-10",
+      "location": "ump",
+      "capacity": 8,
+      "registeredCount": 1,
+      "imageUrl": "/uploads/trainings/hx4lutg6xgvdnymakk0abdoit.jpg"
+    },
+    {
+      "id": "training-1750787538103",
+      "name": "tes",
+      "description": "dadawd",
+      "date": "2025-07-03",
+      "location": "dawda",
+      "capacity": 12,
+      "registeredCount": 1,
+      "imageUrl": "/uploads/trainings/m7e0jc2s8c5cofbpglu1n0l9i.JPG"
+    }
+  ],
+  "trainingRegistrations": [
+    {
+      "id": "reg-1750786505313-PrnCR3DiJ9TWzc6yzXP82jOxHki2-training-1750786505313",
+      "trainingId": "training-1750786505313",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "userName": "akun tes",
+      "userEmail": "testing@example.com",
+      "registrationDate": "2025-06-25T00:00:00.000Z"
+    },
+    {
+      "id": "reg-1750787551117-PrnCR3DiJ9TWzc6yzXP82jOxHki2-training-1750787538103",
+      "trainingId": "training-1750787538103",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "userName": "Contoh Pengguna",
+      "userEmail": "contohuser@example.com",
+      "registrationDate": "2025-06-24T17:52:31.117Z"
     }
   ]
 }
