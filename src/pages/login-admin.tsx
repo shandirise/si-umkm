@@ -1,7 +1,7 @@
 // src/pages/login-admin.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link'; // Tambahkan Link untuk navigasi kembali
+import Link from 'next/link';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
