@@ -2,15 +2,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
-import type { Training, TrainingRegistration, User } from '@/lib/types'; // Import User type
+import type { Training, TrainingRegistration, User } from '@/lib/types'; //
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
 type Database = {
   trainings: Training[];
   trainingRegistrations: TrainingRegistration[];
-  users: User[]; // Pastikan User ada di sini
-  [key: string]: any;
+  users: User[];
+  [key: string]: any; // Biarkan any jika db bisa memiliki properti lain
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const fileData = await fs.readFile(dbPath, 'utf-8');
-    let db: Database = JSON.parse(fileData);
+    const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
 
     const trainingIndex = db.trainings.findIndex(t => t.id === trainingId);
     if (trainingIndex === -1) {
@@ -46,10 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Anda sudah terdaftar di pelatihan ini.' });
     }
 
-    // Cari user di database JSON berdasarkan userId (UID Firebase)
     const user = db.users.find(u => u.id === userId);
     if (!user) {
-        // Ini seharusnya tidak terpanggil lagi jika sinkronisasi berhasil saat register/login
         return res.status(404).json({ message: 'Data pengguna tidak ditemukan di database. Mohon login ulang atau daftar.' });
     }
 
@@ -57,8 +55,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: `reg-${Date.now()}-${userId}-${trainingId}`,
       trainingId: trainingId,
       userId: userId,
-      userName: user.name || user.email || 'Pengguna Tidak Dikenal', // Menggunakan user.name jika ada, fallback ke user.email atau 'Pengguna Tidak Dikenal'
-      userEmail: user.email || 'Email Tidak Dikenal', // Menggunakan user.email jika ada, fallback ke 'Email Tidak Dikenal'
+      userName: user.name || user.email || 'Pengguna Tidak Dikenal',
+      userEmail: user.email || 'Email Tidak Dikenal',
       registrationDate: new Date().toISOString(),
     };
 

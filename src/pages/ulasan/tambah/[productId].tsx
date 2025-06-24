@@ -1,9 +1,9 @@
 // src/pages/ulasan/tambah/[productId].tsx
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
+import Link from 'next/link'; // 'Link' tidak digunakan di sini jika tidak ada navigasi eksplisit.tsx]
 import type { GetServerSideProps, NextPage } from 'next';
-import type { Product } from '@/lib/types';
+import type { Product } from '@/lib/types'; //
 import { useAuth } from '@/hooks/useAuth';
 
 type BeriUlasanProps = {
@@ -75,7 +75,7 @@ const BeriUlasanPage: NextPage<BeriUlasanProps> = ({ product, orderId }) => {
       } else {
         alert('Gagal mengirim ulasan.');
       }
-    } catch (error) {
+    } catch (error) { // 'error' digunakan di console.error
       console.error('Submit review error:', error);
       alert('Terjadi kesalahan koneksi.');
     } finally {
@@ -121,7 +121,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (!res.ok) return { notFound: true };
     const product = await res.json();
     return { props: { product, orderId } };
-  } catch (error) {
+  } catch (error) { // 'error' digunakan di return, jadi tidak unused
     return { notFound: true };
   }
 };

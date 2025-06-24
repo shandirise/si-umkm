@@ -1,9 +1,9 @@
 // src/pages/api/reviews/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import formidable, { File } from 'formidable';
+import formidable from 'formidable'; // Hapus File
 import fs from 'fs/promises';
 import path from 'path';
-import type { Product, Review, User, Shop, Order } from '@/lib/types';
+import type { Product, Review, User, Shop, Order } from '@/lib/types'; //
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
@@ -28,7 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'reviews');
     await fs.mkdir(uploadDir, { recursive: true });
 
-    const form = formidable({ uploadDir, keepExtensions: true });
+    // Tambahkan allowEmptyFiles: true karena gambar opsional
+    const form = formidable({ uploadDir, keepExtensions: true, allowEmptyFiles: true });
     const [fields, files] = await form.parse(req);
 
     const { productId, userId, rating, comment, orderId } = fields;
@@ -39,7 +40,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const fileData = await fs.readFile(dbPath, 'utf-8');
-    let db: Database = JSON.parse(fileData);
+    const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
+
+    let reviewImageUrl: string | undefined;
+    if (imageFile && imageFile.size > 0) { // Pastikan file ada dan tidak kosong
+      reviewImageUrl = `/uploads/reviews/${imageFile.newFilename}`;
+    }
 
     const newReview: Review = {
       id: `review-${Date.now()}`,
@@ -47,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: userId[0],
       rating: Number(rating[0]),
       comment: comment?.[0] || '',
-      imageUrl: imageFile ? `/uploads/reviews/${imageFile.newFilename}` : undefined,
+      imageUrl: reviewImageUrl, // Gunakan variabel yang sudah divalidasi
     };
 
     db.reviews.push(newReview);
@@ -66,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(201).json({ message: 'Ulasan berhasil dikirim', review: newReview });
 
-  } catch (error: any) {
+  } catch (error: any) { // Biarkan any untuk error catch, atau definisikan tipe error
     console.error("Review API Error:", error);
     return res.status(500).json({ message: 'Gagal mengirim ulasan', error: error.message });
   }

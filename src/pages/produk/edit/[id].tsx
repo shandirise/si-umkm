@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import type { GetServerSideProps, NextPage } from 'next';
-import type { Product } from '@/lib/types';
+import type { Product } from '@/lib/types'; //
 
 type EditProdukPageProps = {
   product: Product;
@@ -50,7 +50,7 @@ const EditProdukPage: NextPage<EditProdukPageProps> = ({ product }) => {
       } else {
         alert('Gagal memperbarui produk.');
       }
-    } catch (error) {
+    } catch (error) { // 'error' digunakan di console.error
       console.error('Error saat update:', error);
       alert('Terjadi kesalahan koneksi.');
     } finally {
@@ -116,7 +116,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (!res.ok) { return { notFound: true }; }
     const product = await res.json();
     return { props: { product } };
-  } catch (error) {
+  } catch (error) { // 'error' digunakan di return, jadi tidak unused
     return { notFound: true };
   }
 };

@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
-import type { Product, CartItem, Order, User, Shop, Review } from '@/lib/types'; // Asumsikan tipe Order ada di types.ts
+import type { Product, Order, User, Shop, Review } from '@/lib/types'; // Hapus CartItem jika tidak digunakan di sini
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const fileData = await fs.readFile(dbPath, 'utf-8');
-    let db: Database = JSON.parse(fileData);
+    const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
 
     // Proses setiap item dalam pesanan
     for (const item of items) {

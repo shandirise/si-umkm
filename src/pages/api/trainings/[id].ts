@@ -2,14 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
-import type { Training, TrainingRegistration } from '@/lib/types';
+import type { Training, TrainingRegistration } from '@/lib/types'; //
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
 type Database = {
   trainings: Training[];
   trainingRegistrations: TrainingRegistration[];
-  [key: string]: any;
+  [key: string]: any; // Biarkan any jika db bisa memiliki properti lain.ts]
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'DELETE') {
     try {
       const fileData = await fs.readFile(dbPath, 'utf-8');
-      let db: Database = JSON.parse(fileData);
+      const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
 
       const initialTrainingsLength = db.trainings.length;
       db.trainings = db.trainings.filter((t) => t.id !== id);

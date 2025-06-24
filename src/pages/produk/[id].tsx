@@ -5,7 +5,7 @@ import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import DOMPurify from 'dompurify';
-import type { Product } from '@/lib/types';
+import type { Product } from '@/lib/types'; //
 
 type Props = {
   product: Product;
@@ -48,7 +48,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       params: { id: product.id },
     }));
     return { paths, fallback: 'blocking' };
-  } catch (error) {
+  } catch (error) { // 'error' digunakan di console.error
     console.error("Gagal membuat static paths:", error);
     return { paths: [], fallback: 'blocking' };
   }
@@ -61,7 +61,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
     if (!res.ok) return { notFound: true };
     const product = await res.json();
     return { props: { product }, revalidate: 10 };
-  } catch (error) {
+  } catch (error) { // 'error' digunakan di return, jadi tidak unused
     return { notFound: true };
   }
 };

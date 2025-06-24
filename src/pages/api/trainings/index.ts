@@ -2,14 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
-import formidable, { File } from 'formidable';
-import type { Training } from '@/lib/types';
+import formidable from 'formidable'; // Hapus File
+import type { Training } from '@/lib/types'; //
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
 type Database = {
   trainings: Training[];
-  [key: string]: any;
+  [key: string]: any; // Biarkan any jika db bisa memiliki properti lain
 };
 
 export const config = {
@@ -35,11 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'trainings');
       await fs.mkdir(uploadDir, { recursive: true });
 
-      // === PERUBAHAN UTAMA DI SINI ===
-      // Set allowEmptyFiles to true to allow forms with optional file inputs
       const form = formidable({ uploadDir, keepExtensions: true, allowEmptyFiles: true });
-      // ==============================
-
       const [fields, files] = await form.parse(req);
 
       const name = fields.name?.[0];
@@ -54,10 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const fileData = await fs.readFile(dbPath, 'utf-8');
-      let db: Database = JSON.parse(fileData);
+      const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
 
       let newImageUrl: string | undefined;
-      // Only assign imageUrl if a file was actually uploaded and has content
       if (imageUrlFile && imageUrlFile.size > 0) {
         newImageUrl = `/uploads/trainings/${imageUrlFile.newFilename}`;
       }
@@ -70,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         location: location,
         capacity: Number(capacity),
         registeredCount: 0,
-        imageUrl: newImageUrl, // This will be undefined if no valid image was uploaded
+        imageUrl: newImageUrl,
       };
 
       db.trainings.push(newTraining);
@@ -78,10 +73,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(201).json({ message: 'Pelatihan berhasil ditambahkan', data: newTraining });
 
-    } catch (error: any) {
+    } catch (error: any) { // Biarkan any untuk error catch, atau definisikan tipe error
       console.error('Failed to create training:', error);
-      // It's good practice to send a more specific error message in a real app,
-      // but for this specific error, setting allowEmptyFiles should prevent it.
       return res.status(500).json({ message: 'Terjadi kesalahan saat menambahkan pelatihan', error: error.message });
     }
   }

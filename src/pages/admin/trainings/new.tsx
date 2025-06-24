@@ -1,5 +1,5 @@
 // src/pages/admin/trainings/new.tsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react'; // Hapus useEffect jika tidak digunakan
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
@@ -7,20 +7,22 @@ export default function AddTrainingPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Bagian useEffect yang tidak terpakai dihapus karena user.uid tidak lagi divalidasi di sini.
+  // Jika validasi user hanya di middleware, useEffect ini tidak diperlukan.
+  /*
+  useEffect(() => {
+    if (!user) {
+      const timer = setTimeout(() => router.push('/login'), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, router]);
+  */
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    // Add dummy image if no image is selected, to avoid API error for now.
-    // In a real app, you'd handle this more gracefully (e.g., allow no image, or provide default).
-    if (!formData.get('imageUrl')?.name) {
-      // Simulate adding a dummy file if no image is uploaded
-      // This part might need adjustment if your backend strictly requires a file
-      // For simplicity, let's just make imageUrl optional in the backend type
-      // And frontend doesn't need to append if not chosen.
-    }
-
 
     try {
       const res = await fetch('/api/trainings', {
@@ -35,13 +37,22 @@ export default function AddTrainingPage() {
         const errorData = await res.json();
         alert(`Gagal menambahkan pelatihan: ${errorData.message}`);
       }
-    } catch (error) {
+    } catch (error) { // Biarkan error, atau beri tipe yang lebih spesifik
       console.error('Failed to add training:', error);
       alert('Terjadi kesalahan koneksi. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Jika Anda tidak menggunakan hook useAuth di sini, Anda mungkin perlu menambahkan fallback UI
+  // untuk kasus di mana user tidak login dan langsung mengakses halaman ini tanpa middleware yang kuat
+  // atau redirect dari sisi klien.
+  /*
+  if (!user) {
+    return <div className="text-center p-10">Mengalihkan ke halaman login...</div>;
+  }
+  */
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">

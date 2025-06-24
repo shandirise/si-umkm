@@ -1,4 +1,5 @@
 // src/lib/types.ts
+// Pastikan definisi User HANYA ADA SATU KALI seperti ini:
 export type User = {
   id: string; // Akan diisi dengan UID dari Firebase
   role: 'pembeli' | 'umkm' | 'admin';

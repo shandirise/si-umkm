@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import formidable, { File } from 'formidable';
+import formidable from 'formidable'; // Hapus File
 import fs from 'fs/promises';
 import path from 'path';
-import type { Product } from '@/lib/types';
+import type { Product } from '@/lib/types'; // Impor tipe dari file terpusat
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
@@ -33,12 +33,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
     try {
       const fileData = await fs.readFile(dbPath, 'utf-8');
-      const db: { products: Product[] } = JSON.parse(fileData);
+      const db: { products: Product[] } = JSON.parse(fileData); // Ubah let menjadi const
       
       const uploadDir = path.join(process.cwd(), 'public', 'uploads');
       await fs.mkdir(uploadDir, { recursive: true });
       
-      const form = formidable({ uploadDir, keepExtensions: true });
+      const form = formidable({ uploadDir, keepExtensions: true, allowEmptyFiles: true }); // Tambahkan allowEmptyFiles: true
       const [fields, files] = await form.parse(req);
 
       const nama = fields.nama?.[0];
@@ -47,8 +47,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const deskripsi = fields.deskripsi?.[0];
       const gambarFile = files.gambar?.[0];
 
-      if (!nama || !harga || !stok || !deskripsi || !gambarFile) {
-        return res.status(400).json({ message: 'Semua field wajib diisi' });
+      if (!nama || !harga || !stok || !deskripsi || !gambarFile || gambarFile.size === 0) { // Validasi file tidak kosong
+        return res.status(400).json({ message: 'Semua field wajib diisi, termasuk gambar produk.' });
       }
       
       const newProduct: Product = {
@@ -67,7 +67,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       
       await fs.writeFile(dbPath, JSON.stringify(db, null, 2));
       return res.status(201).json({ message: 'Produk berhasil dibuat', data: newProduct });
-    } catch (error: any) {
+    } catch (error: any) { // Biarkan any untuk error catch, atau definisikan tipe error
       console.error('Gagal memproses form:', error);
       return res.status(500).json({ message: 'Gagal memproses form', error: error.message });
     }

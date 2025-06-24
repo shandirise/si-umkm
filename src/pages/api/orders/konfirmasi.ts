@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
-import type { Order } from '@/lib/types';
+import type { Order } from '@/lib/types'; //
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const fileData = await fs.readFile(dbPath, 'utf-8');
-    let db: Database = JSON.parse(fileData);
+    const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
 
     const orderIndex = db.orders.findIndex(order => order.id === orderId);
 

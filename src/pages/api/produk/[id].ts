@@ -2,8 +2,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs/promises';
 import path from 'path';
-import type { Product } from '@/lib/types';
-import formidable, { File } from 'formidable';
+import type { Product } from '@/lib/types'; //
+import formidable from 'formidable'; // Hapus import { File } jika tidak digunakan secara langsung.ts]
 
 const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const fileData = await fs.readFile(dbPath, 'utf-8');
-    let db: Database = JSON.parse(fileData);
+    const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
     
     // GET: Mengambil satu produk
     if (req.method === 'GET') {
@@ -51,7 +51,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-      const form = formidable({ uploadDir, keepExtensions: true });
+      // Tambahkan allowEmptyFiles: true untuk form PUT dengan gambar opsional
+      const form = formidable({ uploadDir, keepExtensions: true, allowEmptyFiles: true });
       const [fields, files] = await form.parse(req);
 
       const productToUpdate = db.products[productIndex];
@@ -62,10 +63,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       productToUpdate.description = fields.description?.[0] || productToUpdate.description;
       
       const newImageFile = files.newImage?.[0];
-      if (newImageFile) {
+      if (newImageFile && newImageFile.size > 0) { // Pastikan file ada dan tidak kosong
         const oldImagePath = path.join(process.cwd(), 'public', productToUpdate.imageUrl);
         if (productToUpdate.imageUrl.startsWith('/uploads/')) {
-            try { await fs.unlink(oldImagePath); } catch (e) { console.log("Gagal hapus gambar lama, mungkin tidak ada.")}
+            try { await fs.unlink(oldImagePath); } catch (e) { console.log("Gagal hapus gambar lama, mungkin tidak ada.")} // Hapus 'e' dari parameter unused
         }
         productToUpdate.imageUrl = `/uploads/${newImageFile.newFilename}`;
       }
@@ -78,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Allow', ['GET', 'DELETE', 'PUT']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
 
-  } catch (error) {
+  } catch (error) { // Hapus 'error' dari parameter jika tidak digunakan, atau gunakan
     console.error(`Error pada API /api/produk/[id] (ID: ${id}):`, error);
     return res.status(500).json({ message: 'Terjadi kesalahan pada server' });
   }
