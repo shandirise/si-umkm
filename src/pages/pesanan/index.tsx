@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import type { Order } from '@/lib/types';
 import { useRouter } from 'next/router';
+import { auth } from '@/lib/firebase'; // <--- TAMBAHKAN BARIS INI
 
 export default function RiwayatPesananPage() {
   const { user } = useAuth();
