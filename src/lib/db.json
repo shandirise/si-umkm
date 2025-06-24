@@ -1,0 +1,259 @@
+{
+  "users": [
+    {
+      "id": "USER_UID_DARI_FIREBASE",
+      "role": "pembeli",
+      "shopId": null
+    }
+  ],
+  "shops": [
+    {
+      "id": "toko-1",
+      "ownerId": "USER_UID_DARI_FIREBASE_YANG_JADI_UMKM",
+      "name": "Warung Kopi Bahagia"
+    }
+  ],
+  "products": [
+    {
+      "id": "1",
+      "shopId": "toko-1",
+      "name": "Kopi Robusta Lokal",
+      "price": 50005,
+      "stock": 99,
+      "soldCount": 27,
+      "description": "Biji kopi <b>robusta</b> asli dari petani lokal.",
+      "imageUrl": "/uploads/xfmm5v8zq3cp7my1dovyzp3y7.jpg",
+      "isVisible": true
+    },
+    {
+      "id": "2",
+      "shopId": "toko-1",
+      "name": "Keripik Singkong Pedas",
+      "price": 15100,
+      "stock": 190,
+      "soldCount": 161,
+      "description": "Camilan renyah dengan <i>bumbu pedas manis</i>.",
+      "imageUrl": "/uploads/fh4wbke3rreuhjr5gfrip7bap.png",
+      "isVisible": true
+    }
+  ],
+  "reviews": [
+    {
+      "id": "review-1750783059151",
+      "productId": "2",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "rating": 1,
+      "comment": "ga sesuai gambar"
+    },
+    {
+      "id": "review-1750783082530",
+      "productId": "2",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "rating": 5,
+      "comment": "yaa okelah"
+    },
+    {
+      "id": "review-1750783104057",
+      "productId": "1",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "rating": 5,
+      "comment": "maloe"
+    }
+  ],
+  "orders": [
+    {
+      "id": "order-1750781555579-PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "items": [
+        {
+          "__typename": "Produk",
+          "id": "2",
+          "name": "Keripik Singkong Pedas",
+          "price": 15100,
+          "imageUrl": "/uploads/fh4wbke3rreuhjr5gfrip7bap.png",
+          "soldCount": 150,
+          "stock": 201,
+          "shop": {
+            "__typename": "Shop",
+            "name": "Warung Kopi Bahagia"
+          },
+          "reviewStats": {
+            "__typename": "ReviewStats",
+            "average": 0,
+            "count": 0
+          },
+          "quantity": 1,
+          "selected": true
+        }
+      ],
+      "totalPrice": 15100,
+      "status": "selesai",
+      "createdAt": "2025-06-24T16:12:35.579Z"
+    },
+    {
+      "id": "order-1750781560239-PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "items": [
+        {
+          "__typename": "Produk",
+          "id": "1",
+          "name": "Kopi Robusta Lokal",
+          "price": 50005,
+          "imageUrl": "/uploads/xfmm5v8zq3cp7my1dovyzp3y7.jpg",
+          "soldCount": 25,
+          "stock": 101,
+          "shop": {
+            "__typename": "Shop",
+            "name": "Warung Kopi Bahagia"
+          },
+          "reviewStats": {
+            "__typename": "ReviewStats",
+            "average": 0,
+            "count": 0
+          },
+          "quantity": 1,
+          "selected": true
+        }
+      ],
+      "totalPrice": 50005,
+      "status": "selesai",
+      "createdAt": "2025-06-24T16:12:40.239Z"
+    },
+    {
+      "id": "order-1750782380207-PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "items": [
+        {
+          "__typename": "Produk",
+          "id": "2",
+          "name": "Keripik Singkong Pedas",
+          "price": 15100,
+          "imageUrl": "/uploads/fh4wbke3rreuhjr5gfrip7bap.png",
+          "soldCount": 151,
+          "stock": 200,
+          "shop": {
+            "__typename": "Shop",
+            "name": "Warung Kopi Bahagia"
+          },
+          "reviewStats": {
+            "__typename": "ReviewStats",
+            "average": 0,
+            "count": 0
+          },
+          "quantity": 3,
+          "selected": true
+        },
+        {
+          "__typename": "Produk",
+          "id": "1",
+          "name": "Kopi Robusta Lokal",
+          "price": 50005,
+          "imageUrl": "/uploads/xfmm5v8zq3cp7my1dovyzp3y7.jpg",
+          "soldCount": 26,
+          "stock": 100,
+          "shop": {
+            "__typename": "Shop",
+            "name": "Warung Kopi Bahagia"
+          },
+          "reviewStats": {
+            "__typename": "ReviewStats",
+            "average": 0,
+            "count": 0
+          },
+          "quantity": 1,
+          "selected": true
+        }
+      ],
+      "totalPrice": 95305,
+      "status": "selesai",
+      "createdAt": "2025-06-24T16:26:20.207Z"
+    },
+    {
+      "id": "order-1750782412591-PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "items": [
+        {
+          "__typename": "Produk",
+          "id": "2",
+          "name": "Keripik Singkong Pedas",
+          "price": 15100,
+          "imageUrl": "/uploads/fh4wbke3rreuhjr5gfrip7bap.png",
+          "soldCount": 154,
+          "stock": 197,
+          "shop": {
+            "__typename": "Shop",
+            "name": "Warung Kopi Bahagia"
+          },
+          "reviewStats": {
+            "__typename": "ReviewStats",
+            "average": 0,
+            "count": 0
+          },
+          "quantity": 1,
+          "selected": true
+        }
+      ],
+      "totalPrice": 15100,
+      "status": "selesai",
+      "createdAt": "2025-06-24T16:26:52.591Z"
+    },
+    {
+      "id": "order-1750782434411-PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "items": [
+        {
+          "__typename": "Produk",
+          "id": "2",
+          "name": "Keripik Singkong Pedas",
+          "price": 15100,
+          "imageUrl": "/uploads/fh4wbke3rreuhjr5gfrip7bap.png",
+          "soldCount": 155,
+          "stock": 196,
+          "shop": {
+            "__typename": "Shop",
+            "name": "Warung Kopi Bahagia"
+          },
+          "reviewStats": {
+            "__typename": "ReviewStats",
+            "average": 0,
+            "count": 0
+          },
+          "quantity": 1,
+          "selected": true
+        }
+      ],
+      "totalPrice": 15100,
+      "status": "selesai",
+      "createdAt": "2025-06-24T16:27:14.411Z"
+    },
+    {
+      "id": "order-1750782461956-PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "userId": "PrnCR3DiJ9TWzc6yzXP82jOxHki2",
+      "items": [
+        {
+          "__typename": "Produk",
+          "id": "2",
+          "name": "Keripik Singkong Pedas",
+          "price": 15100,
+          "imageUrl": "/uploads/fh4wbke3rreuhjr5gfrip7bap.png",
+          "soldCount": 156,
+          "stock": 195,
+          "shop": {
+            "__typename": "Shop",
+            "name": "Warung Kopi Bahagia"
+          },
+          "reviewStats": {
+            "__typename": "ReviewStats",
+            "average": 0,
+            "count": 0
+          },
+          "quantity": 5,
+          "selected": true
+        }
+      ],
+      "totalPrice": 75500,
+      "status": "selesai",
+      "createdAt": "2025-06-24T16:27:41.956Z"
+    }
+  ]
+}

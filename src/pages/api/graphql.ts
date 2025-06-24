@@ -1,59 +1,92 @@
-// Lokasi: src/pages/api/graphql.ts
+// src/pages/api/graphql.ts
 
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { gql } from 'graphql-tag';
+import fs from 'fs/promises';
+import path from 'path';
+import type { Product, Shop, Review } from '@/lib/types';
 
-// Data mock, dalam aplikasi nyata ini akan terhubung ke database.
-const products = [
-  { id: '1', name: 'Kopi Robusta Lokal', description: 'Biji kopi robusta asli dari petani lokal.', price: 50000 },
-  { id: '2', name: 'Keripik Singkong Pedas', description: 'Camilan renyah dengan bumbu pedas manis.', price: 15000 },
-  { id: '3', name: 'Madu Hutan Murni', description: 'Madu asli dari lebah di hutan Sumatera.', price: 120000 },
-];
+// 1. Definisikan path ke database file kita
+const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
-// Definisikan Skema GraphQL (Struktur Data)
+// 2. Definisikan skema GraphQL (cetak biru data)
+//    Ini sudah diperbarui dengan stock, Shop, dan ReviewStats
 const typeDefs = gql`
+  type Shop {
+    id: ID!
+    name: String
+  }
+
+  type ReviewStats {
+    average: Float
+    count: Int
+  }
+
   type Produk {
     id: ID!
     name: String
-    description: String
-    price: Int
+    price: Float
+    imageUrl: String
+    soldCount: Int
+    stock: Int
+    shop: Shop
+    reviewStats: ReviewStats
   }
 
   type Query {
-    """
-    Fitur pencarian dinamis produk UMKM
-    """
     searchProduk(term: String): [Produk]
   }
 `;
 
-// Definisikan Resolver (Logika untuk mengambil data)
+// 3. Definisikan resolver (logika untuk mengambil dan memproses data)
 const resolvers = {
   Query: {
-    // Perubahan ada di baris ini: 'parent' kini memiliki tipe 'any'
-    searchProduk: (parent: any, args: { term?: string }) => {
-      // Jika tidak ada kata kunci pencarian, kembalikan semua produk.
-      if (!args.term || args.term.trim() === '') {
-        return products;
+    searchProduk: async (_: any, args: { term?: string }) => {
+      try {
+        const fileData = await fs.readFile(dbPath, 'utf-8');
+        const db: { products: Product[], shops: Shop[], reviews: Review[] } = JSON.parse(fileData);
+        
+        // Ambil hanya produk yang visibilitasnya true
+        let filteredProducts = db.products.filter(p => p.isVisible);
+
+        // Jika ada kata kunci pencarian, filter lebih lanjut
+        if (args.term && args.term.trim() !== '') {
+          const searchTerm = args.term.toLowerCase();
+          filteredProducts = filteredProducts.filter(p => p.name.toLowerCase().includes(searchTerm));
+        }
+
+        // Proses setiap produk untuk menambahkan data relasional (toko dan ulasan)
+        return filteredProducts.map(product => {
+          // Cari data toko yang sesuai
+          const shop = db.shops.find(s => s.id === product.shopId);
+          
+          // Cari semua ulasan untuk produk ini
+          const reviewsForProduct = db.reviews.filter(r => r.productId === product.id);
+          
+          // Hitung rata-rata rating
+          const totalRating = reviewsForProduct.reduce((acc, r) => acc + r.rating, 0);
+          const averageRating = reviewsForProduct.length > 0 ? totalRating / reviewsForProduct.length : 0;
+
+          // Kembalikan objek produk yang sudah diperkaya dengan data tambahan
+          return {
+            ...product,
+            shop: shop,
+            reviewStats: {
+              average: averageRating,
+              count: reviewsForProduct.length,
+            },
+          };
+        });
+      } catch (error) {
+        console.error("Gagal memproses query GraphQL:", error);
+        // Kembalikan array kosong jika terjadi error
+        return [];
       }
-      
-      // Lakukan filter pada data 'products' berdasarkan kata kunci pencarian.
-      // Pencarian ini tidak case-sensitive (tidak membedakan huruf besar/kecil).
-      const searchTerm = args.term.toLowerCase();
-      return products.filter(
-        p => p.name.toLowerCase().includes(searchTerm) || 
-             p.description.toLowerCase().includes(searchTerm)
-      );
     },
   },
 };
 
-// Buat dan konfigurasikan server Apollo
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-});
-
-// Integrasikan server Apollo dengan Next.js
+// 4. Buat dan jalankan server Apollo
+const server = new ApolloServer({ typeDefs, resolvers });
 export default startServerAndCreateNextHandler(server);

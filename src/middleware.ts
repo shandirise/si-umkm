@@ -2,26 +2,52 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(request: NextRequest) {
-  // Coba ambil token dari cookies
-  const token = request.cookies.get('admin_token')?.value;
+// Ambil secret key dari environment variable
+const secretKey = process.env.JWT_SECRET;
 
-  // Jika tidak ada token dan pengguna mencoba akses halaman admin,
-  // alihkan (redirect) ke halaman login admin.
-  if (!token) {
-    console.log('Middleware: Token tidak ditemukan, mengalihkan ke /login-admin');
-    return NextResponse.redirect(new URL('/login-admin', request.url));
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Implementasi untuk poin 2: Logging permintaan API 
+  if (pathname.startsWith('/api/')) {
+    const now = new Date();
+    // Format log: [Timestamp] METHOD /path
+    console.log(`[${now.toISOString()}] API Request: ${request.method} ${pathname}`);
+    // Setelah logging, biarkan request API berjalan seperti biasa
   }
 
-  // Jika token ada, izinkan pengguna melanjutkan.
-  // Verifikasi JWT yang sebenarnya bisa ditambahkan di sini nanti untuk keamanan lebih.
-  console.log('Middleware: Token ditemukan, akses diizinkan.');
+  // Implementasi untuk poin 1: Validasi token JWT saat mengakses halaman admin 
+  if (pathname.startsWith('/admin')) {
+    const token = request.cookies.get('admin_token')?.value;
+
+    // Redirect jika tidak ada token atau secret key tidak di-set
+    if (!token || !secretKey) {
+      return NextResponse.redirect(new URL('/login-admin', request.url));
+    }
+
+    try {
+      const secret = new TextEncoder().encode(secretKey);
+      // 'await jwtVerify' akan melempar error jika token tidak valid
+      await jwtVerify(token, secret);
+      
+      // Jika verifikasi berhasil, izinkan akses
+      return NextResponse.next();
+
+    } catch (err) {
+      // Jika token tidak valid (kedaluwarsa, signature salah, dll.),
+      // redirect ke halaman login
+      console.error('Middleware: Verifikasi JWT Gagal', err);
+      return NextResponse.redirect(new URL('/login-admin', request.url));
+    }
+  }
+
+  // Lanjutkan request lainnya yang tidak cocok dengan kondisi di atas
   return NextResponse.next();
 }
 
-// Konfigurasi ini memberitahu middleware untuk HANYA berjalan
-// pada rute yang diawali dengan /admin (dan semua sub-halamannya).
+// Konfigurasi matcher untuk menjalankan middleware di rute admin DAN api
 export const config = {
-  matcher: '/admin/:path*',
+  matcher: ['/admin/:path*', '/api/:path*'],
 };
