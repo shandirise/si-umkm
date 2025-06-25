@@ -6,27 +6,28 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // Ensure that Node.js built-in modules are always externalized
-      // This custom external function will match modules like 'fs', 'fs/promises', 'path', 'crypto', 'events'
-      // and also their 'node:' prefixed versions (e.g., 'node:fs', 'node:crypto')
+      // Pastikan modul bawaan Node.js dieksternalisasi saat build sisi server
+      // Fungsi eksternal kustom ini akan mencocokkan modul seperti 'fs', 'fs/promises', dll.
+      // dan juga versi dengan prefiks 'node:' (misalnya, 'node:fs', 'node:crypto')
       config.externals = [
-        ...config.externals, // Keep any existing externals
+        ...(config.externals || []), // Pertahankan eksternal yang sudah ada
         (request: string, callback: (err?: Error | null, result?: string) => void) => {
           const nodeBuiltIns = ['fs', 'fs/promises', 'path', 'crypto', 'events', 'stream', 'buffer', 'util', 'os', 'http', 'https', 'url'];
           
           if (nodeBuiltIns.some(mod => request === mod || request === `node:${mod}`)) {
-            // Treat these modules as external CommonJS modules
+            // Perlakukan modul ini sebagai modul CommonJS eksternal
             return callback(null, `commonjs ${request}`);
           }
-          // Continue with default externalization for other modules
+          // Lanjutkan dengan eksternalisasi default untuk modul lain
           callback();
         },
       ];
 
-      // Add alias to handle 'node:' prefixed imports by mapping them to their non-prefixed versions.
-      // This helps Webpack resolve the 'node:' scheme before externalization.
+      // Tambahkan alias untuk menangani impor dengan prefiks 'node:'
+      // dengan memetakan mereka ke versi non-prefiksnya.
+      // Ini membantu Webpack menyelesaikan skema 'node:' sebelum eksternalisasi.
       config.resolve.alias = {
-        ...(config.resolve.alias || {}), // Preserve existing aliases
+        ...(config.resolve.alias || {}), // Pertahankan alias yang sudah ada
         'node:fs': 'fs',
         'node:fs/promises': 'fs/promises',
         'node:crypto': 'crypto',
