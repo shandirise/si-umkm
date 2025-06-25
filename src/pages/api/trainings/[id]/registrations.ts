@@ -1,32 +1,29 @@
 // src/pages/api/trainings/[id]/registrations.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import fs from 'fs/promises';
-import path from 'path';
-import type { TrainingRegistration } from '@/lib/types'; //
-
-const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
-
-type Database = {
-  trainingRegistrations: TrainingRegistration[];
-  [key: string]: any; // Biarkan any jika db bisa memiliki properti lain/registrations.ts]
-};
+import { adminDb } from '@/lib/firebaseAdmin'; // Import adminDb
+import type { TrainingRegistration } from '@/lib/types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  const { id } = req.query; // id pelatihan
+  const { id } = req.query; // trainingId
+  const trainingId = id as string;
 
-  if (!id) {
+  if (!trainingId) {
     return res.status(400).json({ message: 'Training ID dibutuhkan.' });
   }
 
   try {
-    const fileData = await fs.readFile(dbPath, 'utf-8');
-    const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
+    const registrationsSnapshot = await adminDb.collection('trainingRegistrations')
+      .where('trainingId', '==', trainingId)
+      .get();
 
-    const registrations = db.trainingRegistrations.filter(reg => reg.trainingId === id);
+    const registrations: TrainingRegistration[] = [];
+    registrationsSnapshot.forEach(doc => {
+      registrations.push({ id: doc.id, ...doc.data() } as TrainingRegistration);
+    });
 
     res.status(200).json(registrations);
   } catch (error) {

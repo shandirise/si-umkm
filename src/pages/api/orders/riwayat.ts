@@ -1,10 +1,7 @@
 // src/pages/api/orders/riwayat.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import fs from 'fs/promises';
-import path from 'path';
+import { adminDb } from '@/lib/firebaseAdmin'; // Import adminDb
 import type { Order } from '@/lib/types';
-
-const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -18,10 +15,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const fileData = await fs.readFile(dbPath, 'utf-8');
-    const db: { orders: Order[] } = JSON.parse(fileData);
-
-    const userOrders = db.orders.filter(order => order.userId === userId);
+    const ordersSnapshot = await adminDb.collection('orders').where('userId', '==', userId).orderBy('createdAt', 'desc').get();
+    const userOrders: Order[] = [];
+    ordersSnapshot.forEach(doc => {
+      userOrders.push({ id: doc.id, ...doc.data() } as Order);
+    });
 
     res.status(200).json(userOrders);
   } catch (error) {

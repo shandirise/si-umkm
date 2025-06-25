@@ -1,19 +1,16 @@
 // src/pages/api/reviews/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import formidable from 'formidable'; // Hapus File
-import fs from 'fs/promises';
-import path from 'path';
-import type { Product, Review, User, Shop, Order } from '@/lib/types'; //
+import formidable from 'formidable';
+// You'll remove fs and path imports for image saving if you use Firebase Storage
+import fs from 'fs/promises'; // Keep if still using local temporary files before uploading
+import path from 'path'; // Keep if still using local temporary files before uploading
+import { adminDb } from '@/lib/firebaseAdmin'; // Import adminDb
+import type { Review } from '@/lib/types'; //
 
-const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
-
-type Database = {
-  users: User[];
-  shops: Shop[];
-  products: Product[];
-  reviews: Review[];
-  orders: Order[];
-}
+// You'll likely need to use Firebase Storage for image uploads
+// For simplicity, we'll keep local uploads for now, but in Vercel
+// this won't persist. You'd integrate Firebase Storage here.
+// const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'reviews');
 
 export const config = {
   api: { bodyParser: false },
@@ -25,10 +22,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'reviews');
-    await fs.mkdir(uploadDir, { recursive: true });
+    // --- IMPORTANT: For production, integrate Firebase Storage for images ---
+    // This local file upload will NOT work on Vercel after build.
+    // You need to upload to Firebase Storage and get a public URL.
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'reviews'); // Placeholder for local dev
+    await fs.mkdir(uploadDir, { recursive: true }); // Placeholder for local dev
+    // ---------------------------------------------------------------------
 
-    // Tambahkan allowEmptyFiles: true karena gambar opsional
     const form = formidable({ uploadDir, keepExtensions: true, allowEmptyFiles: true });
     const [fields, files] = await form.parse(req);
 
@@ -39,40 +39,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Data tidak lengkap.' });
     }
 
-    const fileData = await fs.readFile(dbPath, 'utf-8');
-    const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
-
     let reviewImageUrl: string | undefined;
-    if (imageFile && imageFile.size > 0) { // Pastikan file ada dan tidak kosong
-      reviewImageUrl = `/uploads/reviews/${imageFile.newFilename}`;
+    if (imageFile && imageFile.size > 0) {
+      // --- REPLACE THIS WITH FIREBASE STORAGE UPLOAD LOGIC ---
+      reviewImageUrl = `/uploads/reviews/${imageFile.newFilename}`; // This is a local path.
+      // --------------------------------------------------------
     }
 
+    const newReviewRef = adminDb.collection('reviews').doc();
     const newReview: Review = {
-      id: `review-${Date.now()}`,
+      id: newReviewRef.id,
       productId: productId[0],
       userId: userId[0],
       rating: Number(rating[0]),
       comment: comment?.[0] || '',
-      imageUrl: reviewImageUrl, // Gunakan variabel yang sudah divalidasi
+      imageUrl: reviewImageUrl,
     };
 
-    db.reviews.push(newReview);
+    await newReviewRef.set(newReview);
 
-    // Optional: Tandai bahwa item di pesanan ini sudah di-review
-    const order = db.orders.find(o => o.id === orderId[0]);
-    if (order) {
-      const itemInOrder = order.items.find(item => item.id === productId[0]);
-      if (itemInOrder) {
-        // Kita bisa tambahkan properti isReviewed jika ada di tipe CartItem
-        // Untuk sekarang, kita lewati langkah ini agar sederhana
-      }
-    }
-
-    await fs.writeFile(dbPath, JSON.stringify(db, null, 2));
+    // Optional: Update average rating on product or shop if needed (more complex with Firestore)
+    // You might also use a Cloud Function for this.
 
     return res.status(201).json({ message: 'Ulasan berhasil dikirim', review: newReview });
 
-  } catch (error: any) { // Biarkan any untuk error catch, atau definisikan tipe error
+  } catch (error: any) {
     console.error("Review API Error:", error);
     return res.status(500).json({ message: 'Gagal mengirim ulasan', error: error.message });
   }

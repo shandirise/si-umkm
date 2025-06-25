@@ -1,42 +1,39 @@
 // src/pages/api/trainings/[id].ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import fs from 'fs/promises';
-import path from 'path';
-import type { Training, TrainingRegistration } from '@/lib/types'; //
-
-const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
-
-type Database = {
-  trainings: Training[];
-  trainingRegistrations: TrainingRegistration[];
-  [key: string]: any; // Biarkan any jika db bisa memiliki properti lain.ts]
-};
+import { adminDb } from '@/lib/firebaseAdmin'; // Import adminDb
+import type { Training } from '@/lib/types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query; // trainingId
+  const trainingId = id as string;
 
   if (req.method === 'DELETE') {
     try {
-      const fileData = await fs.readFile(dbPath, 'utf-8');
-      const db: Database = JSON.parse(fileData); // Ubah 'let' menjadi 'const'
+      const trainingRef = adminDb.collection('trainings').doc(trainingId);
+      const trainingDoc = await trainingRef.get();
 
-      const initialTrainingsLength = db.trainings.length;
-      db.trainings = db.trainings.filter((t) => t.id !== id);
-
-      if (db.trainings.length === initialTrainingsLength) {
+      if (!trainingDoc.exists) {
         return res.status(404).json({ message: 'Pelatihan tidak ditemukan.' });
       }
 
-      // Hapus juga semua pendaftaran terkait pelatihan ini
-      db.trainingRegistrations = db.trainingRegistrations.filter(
-        (reg) => reg.trainingId !== id
-      );
+      // Start a batch write to delete training and its registrations atomically
+      const batch = adminDb.batch();
+      batch.delete(trainingRef); // Delete the training
 
-      await fs.writeFile(dbPath, JSON.stringify(db, null, 2));
+      // Find and delete all registrations associated with this training
+      const registrationsSnapshot = await adminDb.collection('trainingRegistrations')
+        .where('trainingId', '==', trainingId)
+        .get();
+      registrationsSnapshot.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+
       return res.status(200).json({ message: 'Pelatihan dan pendaftaran terkait berhasil dihapus.' });
 
     } catch (error) {
-      console.error(`Error deleting training (ID: ${id}):`, error);
+      console.error(`Error deleting training (ID: ${trainingId}):`, error);
       return res.status(500).json({ message: 'Terjadi kesalahan pada server saat menghapus pelatihan.' });
     }
   }

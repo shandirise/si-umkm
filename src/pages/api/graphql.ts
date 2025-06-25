@@ -3,15 +3,11 @@
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { gql } from 'graphql-tag';
-import fs from 'fs/promises';
-import path from 'path';
+import { adminDb } from '@/lib/firebaseAdmin'; // Import adminDb
+import * as admin from 'firebase-admin'; // <--- TAMBAHKAN INI UNTUK NAMESPACE 'admin'
 import type { Product, Shop, Review } from '@/lib/types';
 
-// 1. Definisikan path ke database file kita
-const dbPath = path.join(process.cwd(), 'src', 'lib', 'db.json');
-
-// 2. Definisikan skema GraphQL (cetak biru data)
-//    Ini sudah diperbarui dengan stock, Shop, dan ReviewStats
+// ... (typeDefs tetap sama)
 const typeDefs = gql`
   type Shop {
     id: ID!
@@ -39,36 +35,50 @@ const typeDefs = gql`
   }
 `;
 
-// 3. Definisikan resolver (logika untuk mengambil dan memproses data)
 const resolvers = {
   Query: {
     searchProduk: async (_: any, args: { term?: string }) => {
       try {
-        const fileData = await fs.readFile(dbPath, 'utf-8');
-        const db: { products: Product[], shops: Shop[], reviews: Review[] } = JSON.parse(fileData);
-        
-        // Ambil hanya produk yang visibilitasnya true
-        let filteredProducts = db.products.filter(p => p.isVisible);
+        // Gunakan `admin.firestore.Query` untuk tipe productsQuery
+        let productsQuery: admin.firestore.Query = adminDb.collection('products').where('isVisible', '==', true);
 
-        // Jika ada kata kunci pencarian, filter lebih lanjut
         if (args.term && args.term.trim() !== '') {
-          const searchTerm = args.term.toLowerCase();
-          filteredProducts = filteredProducts.filter(p => p.name.toLowerCase().includes(searchTerm));
+          // Implementasi client-side filter setelah fetch karena Firestore tidak mendukung 'contains' case-insensitive secara native.
+          // Query tetap fetch semua produk visible, filtering akan dilakukan di bawah.
         }
 
-        // Proses setiap produk untuk menambahkan data relasional (toko dan ulasan)
-        return filteredProducts.map(product => {
-          // Cari data toko yang sesuai
-          const shop = db.shops.find(s => s.id === product.shopId);
+        const productsSnapshot = await productsQuery.get();
+        let products: Product[] = [];
+        // Beri tipe eksplisit untuk 'doc' sebagai admin.firestore.QueryDocumentSnapshot
+        productsSnapshot.forEach((doc: admin.firestore.QueryDocumentSnapshot) => { // <--- PERBAIKI BARIS INI
+          products.push({ id: doc.id, ...doc.data() } as Product);
+        });
+
+        if (args.term && args.term.trim() !== '') {
+            const searchTerm = args.term.toLowerCase();
+            products = products.filter(p => p.name.toLowerCase().includes(searchTerm));
+        }
+
+        // Fetch all shops and reviews once for efficiency
+        const shopsSnapshot = await adminDb.collection('shops').get();
+        const shops: Shop[] = [];
+        shopsSnapshot.forEach((doc: admin.firestore.QueryDocumentSnapshot) => { // <--- PERBAIKI BARIS INI
+            shops.push({ id: doc.id, ...doc.data() } as Shop);
+        });
+
+        const reviewsSnapshot = await adminDb.collection('reviews').get();
+        const allReviews: Review[] = [];
+        reviewsSnapshot.forEach((doc: admin.firestore.QueryDocumentSnapshot) => { // <--- PERBAIKI BARIS INI
+            allReviews.push({ id: doc.id, ...doc.data() } as Review);
+        });
+        
+        return products.map(product => {
+          const shop = shops.find(s => s.id === product.shopId);
+          const reviewsForProduct = allReviews.filter(r => r.productId === product.id);
           
-          // Cari semua ulasan untuk produk ini
-          const reviewsForProduct = db.reviews.filter(r => r.productId === product.id);
-          
-          // Hitung rata-rata rating
           const totalRating = reviewsForProduct.reduce((acc, r) => acc + r.rating, 0);
           const averageRating = reviewsForProduct.length > 0 ? totalRating / reviewsForProduct.length : 0;
 
-          // Kembalikan objek produk yang sudah diperkaya dengan data tambahan
           return {
             ...product,
             shop: shop,
@@ -80,13 +90,11 @@ const resolvers = {
         });
       } catch (error) {
         console.error("Gagal memproses query GraphQL:", error);
-        // Kembalikan array kosong jika terjadi error
         return [];
       }
     },
   },
 };
 
-// 4. Buat dan jalankan server Apollo
 const server = new ApolloServer({ typeDefs, resolvers });
 export default startServerAndCreateNextHandler(server);
