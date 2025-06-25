@@ -4,28 +4,36 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, webpack }) => {
     if (isServer) {
-      // Pastikan modul bawaan Node.js dieksternalisasi saat build sisi server
-      // Fungsi eksternal kustom ini akan mencocokkan modul seperti 'fs', 'fs/promises', dll.
-      // dan juga versi dengan prefiks 'node:' (misalnya, 'node:fs', 'node:crypto')
       config.externals = [
-        ...(config.externals || []), // Pertahankan eksternal yang sudah ada
-        (request: string, callback: (err?: Error | null, result?: string) => void) => {
+        // Pertahankan eksternal yang sudah ada
+        ...(Array.isArray(config.externals) ? config.externals : [config.externals].filter(Boolean)),
+        // Beri tipe eksplisit untuk 'request'
+        ({ request }: { request?: string }, callback: (err?: Error | null, result?: string) => void) => {
           const nodeBuiltIns = ['fs', 'fs/promises', 'path', 'crypto', 'events', 'stream', 'buffer', 'util', 'os', 'http', 'https', 'url'];
           
-          if (nodeBuiltIns.some(mod => request === mod || request === `node:${mod}`)) {
-            // Perlakukan modul ini sebagai modul CommonJS eksternal
+          if (
+            request &&
+            nodeBuiltIns.some(mod => request === mod || request.startsWith(`node:${mod}`))
+          ) {
             return callback(null, `commonjs ${request}`);
           }
-          // Lanjutkan dengan eksternalisasi default untuk modul lain
           callback();
         },
       ];
 
-      // Tambahkan alias untuk menangani impor dengan prefiks 'node:'
-      // dengan memetakan mereka ke versi non-prefiksnya.
-      // Ini membantu Webpack menyelesaikan skema 'node:' sebelum eksternalisasi.
+      config.plugins.push(
+        // Beri tipe eksplisit untuk 'resource'
+        new webpack.NormalModuleReplacementPlugin(
+          /^node:(.*)/,
+          (resource: { request: string }) => { // 'resource' adalah objek dengan properti 'request'
+            resource.request = resource.request.replace(/^node:/, '');
+          }
+        )
+      );
+
+      // Bagian alias yang sudah ada (jangan dihapus)
       config.resolve.alias = {
         ...(config.resolve.alias || {}), // Pertahankan alias yang sudah ada
         'node:fs': 'fs',
